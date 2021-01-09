@@ -14,7 +14,7 @@ const authenticate = (req, res, next) => {
     // if(authEntry['error'])
     //     throw {error: new Error(authEntry.error['message']), code:authEntry.error['code']};
 
-    const authEntry = await userModel.getUserDetail({_id:token},{firstName: 1, email: 1});
+    const authEntry = await userModel.getUserDetail({_id:token},{ nickName: 1, email: 1 });
     if (!user) return sendResponse(res, 400, "Invalid token", {});
 
     req.user = authEntry;

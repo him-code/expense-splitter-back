@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const memberSchema = mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true,
   },
   groupName: {
@@ -12,14 +12,18 @@ const memberSchema = mongoose.Schema({
   },
   groupId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Group",
+    ref: "group",
     required: true,
   },
   takeFrom: [
     {
       id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Group",
+        ref: "member",
+        required: true,
+      },
+      name: {
+        type: String,
         required: true,
       },
       amount: {
@@ -32,7 +36,11 @@ const memberSchema = mongoose.Schema({
     {
       id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Group",
+        ref: "member",
+        required: true,
+      },
+      name: {
+        type: String,
         required: true,
       },
       amount: {

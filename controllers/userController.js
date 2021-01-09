@@ -8,6 +8,7 @@ const signup = async (req, res) => {
       "firstName",
       "lastName",
       "password",
+      "nickName",
       "email",
       "mobileNumber",
     ];

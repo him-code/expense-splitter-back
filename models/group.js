@@ -3,15 +3,14 @@ const mongoose = require("mongoose");
 let groupSchema = mongoose.Schema({
   name: {
     type: String,
-    default: 'Group',
+    required: true
   },
   membersCount: {
     type: Number,
     default: 0
   },
   createdBy :{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    type: String,
     required: true
   },
   createdOn :{

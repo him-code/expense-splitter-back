@@ -12,7 +12,7 @@ const createGroup = async (req, res) => {
       const group = await groupModel.createGroups({
         name: req.body.name,
         membersCount: req.body.members.length,
-        createdBy: req.user._id,
+        createdBy: req.user.nickName,
       });
 
       const members = req.body.members.map((id) => {

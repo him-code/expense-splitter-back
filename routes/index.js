@@ -6,6 +6,7 @@ const {
 } = require("../controllers/userController");
 const { getGroupsData } = require("../controllers/memberController");
 const { createGroup } = require("../controllers/groupController");
+const { createExpense } = require("../middlewares/expenseController");
 const { authenticate } = require("../middlewares/authenticate");
 
 module.exports = function (app) {
@@ -18,8 +19,11 @@ module.exports = function (app) {
   app.get("/dashboard", authenticate, getGroupsData);
 
   //user searching api
-  app.get("/dashboard", authenticate, getUsers);
+  app.get("/search-users", authenticate, getUsers);
 
   // create group api
-  app.post("/dashboard", authenticate, createGroup);
+  app.post("/create-group", authenticate, createGroup);
+
+  // create expense api
+  app.post("/create-expense", authenticate, createExpense);
 };

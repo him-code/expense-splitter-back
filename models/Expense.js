@@ -4,46 +4,38 @@ const mongoose = require('mongoose'),
 let expenseSchema = new Schema({
   name: {
     type: String,
-    default: '',
+    required: true
   },
   membersCount: {
     type: Number,
-    default: 0
+    required: true
   },
   totalAmount: {
     type: Number,
-    default: 0
+    required: true
   },
   payee:{
     memberId:{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Member",
+      ref: "member",
       required: true
     },
     memberName:{
       type: String,
       default: '',
     },
-    memberEmail:{
-      type: String,
-      default: '',
-    }
   },
   payers:[
     {
       memberId:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Member",
+        ref: "member",
         required: true
       },
       memberName:{
         type: String,
         default: '',
       },
-      memberEmail:{
-        type: String,
-        default: '',
-      }
     }
   ],
   status: {
@@ -52,8 +44,7 @@ let expenseSchema = new Schema({
     default: 'Active' 
   },
   createdBy :{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Member",
+    type: String,
     required: true
   },
   createdOn :{
