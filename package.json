@@ -1,0 +1,26 @@
+{
+  "name": "expense-splitter-back",
+  "version": "1.0.0",
+  "description": "Backend of the Spliter",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.20",
+    "redis": "^3.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/him-code/expense-splitter-back.git"
+  },
+  "author": "Himanshu Nehra",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/him-code/expense-splitter-back/issues"
+  },
+  "homepage": "https://github.com/him-code/expense-splitter-back#readme"
+}
