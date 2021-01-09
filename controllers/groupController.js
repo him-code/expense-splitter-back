@@ -7,18 +7,20 @@ const createGroup = async (req, res) => {
   try {
     const requiredKeys = ["name", "members"];
     if (validateKeys(req.body, requiredKeys) && req.body.members.length) {
-      req.body.members.push(req.user._id);
+      req.body.members.push({ id: req.user._id, nickName: req.user.nickName });
 
       const group = await groupModel.createGroups({
         name: req.body.name,
         membersCount: req.body.members.length,
-        createdBy: req.user.nickName,
       });
 
-      const members = req.body.members.map((id) => {
-        return { groupName: group.name, groupId: group.id, userId: id };
+      const members = req.body.members.map(item => {
+        return { groupName: group.name, groupId: group.id, userId: item.id, nickName: item.nickName };
       });
       await memberModel.createMembers(members);
+
+      //UPDATE new group created By req.user.nickName
+      //UPDATE you are added to "group.name" group { groupName: group.name, groupId: group.id, notification:1, updatedOn: new Date().toISOString() }
 
       sendResponse(res, 200, "Group created successfully", {
         groupName: group.name,

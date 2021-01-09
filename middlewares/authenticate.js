@@ -1,6 +1,7 @@
 const { sendResponse } = require("../utils/responseHandler");
+const userModel = require("../models/user");
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
     const token = req.header("xauth");
 
@@ -15,7 +16,7 @@ const authenticate = (req, res, next) => {
     //     throw {error: new Error(authEntry.error['message']), code:authEntry.error['code']};
 
     const authEntry = await userModel.getUserDetail({_id:token},{ nickName: 1, email: 1 });
-    if (!user) return sendResponse(res, 400, "Invalid token", {});
+    if (!authEntry) return sendResponse(res, 400, "Invalid token", {});
 
     req.user = authEntry;
 

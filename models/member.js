@@ -6,6 +6,10 @@ const memberSchema = mongoose.Schema({
     ref: "user",
     required: true,
   },
+  nickName: {
+    type: String,
+    required: true,
+  },
   groupName: {
     type: String,
     default: "",
@@ -65,6 +69,10 @@ memberSchema.statics.createMembers = function (data) {
 
 memberSchema.statics.getGroupMembers = function (condition, options) {
   return this.find(condition, options || {});
+};
+
+memberSchema.statics.getGroupMember = function (condition, options) {
+  return this.findOne(condition, options || {});
 };
 
 module.exports = mongoose.model("member", memberSchema);

@@ -14,6 +14,11 @@ let expenseSchema = new Schema({
     type: Number,
     required: true
   },
+  groupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "group",
+    required: true
+  },
   payee:{
     memberId:{
       type: mongoose.Schema.Types.ObjectId,
@@ -43,15 +48,14 @@ let expenseSchema = new Schema({
     enum: ['Inactive','Active'],
     default: 'Active' 
   },
-  createdBy :{
-    type: String,
-    required: true
-  },
   createdOn :{
     type:Date,
     default: Date.now
   }
 })
 
+memberSchema.statics.createExpenses = function (data) {
+  return this.create(data);
+};
 
-mongoose.model('Expense', expenseSchema);
+module.exports = mongoose.model("expense", expenseSchema);

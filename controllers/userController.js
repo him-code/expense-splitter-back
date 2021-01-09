@@ -79,7 +79,7 @@ const getUsers = async (req, res) => {
     const requiredKeys = ["email"];
     if (validateKeys(req.body, requiredKeys)) {
       const users = await userModel.getUserDetail(
-        {email: req.body.email},
+        {email: `/^${req.body.email}/`, _id: { $ne: req.user._id }},
         { firstName: 1, lastName: 1, email: 1 }
       );
 
@@ -94,4 +94,20 @@ const getUsers = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, forgetPassword, getUsers };
+
+const checkNickNames = async (req, res) => {
+  try {
+    if (req.body.nickName) {
+      const user = await userModel.getUserDetail({ nickName: `/^${req.body.nickName}/` });
+      if(!user)
+        sendResponse(res, 200, "nickName available", {});
+    } else {
+      sendResponse(res, 400, "Missing required fields in the request", {});
+    }
+  } catch (err) {
+    console.log("ERROR in Login api (userController)", err);
+    sendResponse(res, 400, "Something seems fishy in the request", err);
+  }
+};
+
+module.exports = { signup, login, forgetPassword, getUsers, checkNickNames};
