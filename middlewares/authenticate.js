@@ -6,8 +6,6 @@ const authenticate = (req, res, next) => {
 
     if (!token) return sendResponse(res, 400, "Missing token", {});
 
-    if (token != '12345678') return sendResponse(res, 400, "Invalid token", {});
-
     // const decoded = await verifyAuthToken(token);
     // if(decoded['error'])
     //     throw {error: new Error('Token is invalid or expired!'), code: 401};
@@ -16,7 +14,10 @@ const authenticate = (req, res, next) => {
     // if(authEntry['error'])
     //     throw {error: new Error(authEntry.error['message']), code:authEntry.error['code']};
 
-    // req.user = authEntry;
+    const authEntry = await userModel.getUserDetail({_id:token},{firstName: 1, email: 1});
+    if (!user) return sendResponse(res, 400, "Invalid token", {});
+
+    req.user = authEntry;
 
     next();
   } catch (err) {
@@ -25,4 +26,4 @@ const authenticate = (req, res, next) => {
   }
 };
 
-export default authenticate;
+module.exports = { authenticate };

@@ -3,6 +3,7 @@ const {
   login,
   forgetPassword,
 } = require("../controllers/userController");
+const { getGroupsData } = require("../controllers/memberController");
 const { authenticate } = require("../middlewares/authenticate");
 
 module.exports = function (app) {
@@ -12,5 +13,5 @@ module.exports = function (app) {
   app.post("/forgetpassword", forgetPassword);
 
   // authenticated user
-  app.get("/dashboard", authenticate, dashboard )
+  app.get("/dashboard", authenticate, getGroupsData);
 };

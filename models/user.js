@@ -42,8 +42,8 @@ userSchema.statics.createUser = function (data) {
   return this.create(data);
 };
 
-userSchema.statics.getDetailsByCreds = function (condition) {
-  return this.findOne(condition, filterObj);
+userSchema.statics.getUserDetail = function (condition, options) {
+  return this.findOne(condition, options || filterObj);
 };
 
 module.exports = mongoose.model("user", userSchema);
