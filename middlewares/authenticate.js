@@ -16,7 +16,7 @@ const authenticate = (req, res, next) => {
     // if(authEntry['error'])
     //     throw {error: new Error(authEntry.error['message']), code:authEntry.error['code']};
 
-    req.user = authEntry;
+    // req.user = authEntry;
 
     next();
   } catch (err) {
