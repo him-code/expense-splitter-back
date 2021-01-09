@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-let memberSchema = mongoose.Schema({
+const memberSchema = mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -45,13 +45,13 @@ let memberSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  createdOn: {
+  updatedOn: {
     type: Date,
     default: Date.now,
   },
 });
 
-memberSchema.statics.createMember = function (data) {
+memberSchema.statics.createMembers = function (data) {
   return this.create(data);
 };
 

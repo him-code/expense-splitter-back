@@ -2,8 +2,10 @@ const {
   signup,
   login,
   forgetPassword,
+  getUsers,
 } = require("../controllers/userController");
 const { getGroupsData } = require("../controllers/memberController");
+const { createGroup } = require("../controllers/groupController");
 const { authenticate } = require("../middlewares/authenticate");
 
 module.exports = function (app) {
@@ -14,4 +16,10 @@ module.exports = function (app) {
 
   // authenticated user
   app.get("/dashboard", authenticate, getGroupsData);
+
+  //user searching api
+  app.get("/dashboard", authenticate, getUsers);
+
+  // create group api
+  app.post("/dashboard", authenticate, createGroup);
 };

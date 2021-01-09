@@ -6,7 +6,7 @@ const getGroupsData = async (req, res) => {
   try {
     const groups = await memberModel.getGroupMembers(
       { userId: req.user._id },
-      { groupName: 1, groupId: 1, notification: 1 }
+      { groupName: 1, groupId: 1, notification: 1, updatedOn: 1 }
     );
     sendResponse(res, 200, "Groups fetched successfully", { user:req.user, groups });
   } catch (err) {

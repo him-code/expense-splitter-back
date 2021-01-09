@@ -12,7 +12,7 @@ const signup = async (req, res) => {
       "mobileNumber",
     ];
     if (validateKeys(req.body, requiredKeys)) {
-      const user = await userModel.createUser(req.body);
+      const user = await userModel.createUsers(req.body);
       const header = { xauth: user._id };
 
       sendResponse(res, 200, "User created successfully", user, header);
@@ -73,4 +73,24 @@ const forgetPassword = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, forgetPassword };
+const getUsers = async (req, res) => {
+  try {
+    const requiredKeys = ["email"];
+    if (validateKeys(req.body, requiredKeys)) {
+      const users = await userModel.getUserDetail(
+        {email: req.body.email},
+        { firstName: 1, lastName: 1, email: 1 }
+      );
+
+      if (users) sendResponse(res, 200, "List of users", users);
+      else sendResponse(res, 200, "No such user present", {});
+    } else {
+      sendResponse(res, 400, "Missing required fields in the request", {});
+    }
+  } catch (err) {
+    console.log("ERROR in Login api (userController)", err);
+    sendResponse(res, 400, "Something seems fishy in the request", err);
+  }
+};
+
+module.exports = { signup, login, forgetPassword, getUsers };

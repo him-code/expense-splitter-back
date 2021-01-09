@@ -38,7 +38,7 @@ const filterObj = {
   password: 0,
 };
 
-userSchema.statics.createUser = function (data) {
+userSchema.statics.createUsers = function (data) {
   return this.create(data);
 };
 

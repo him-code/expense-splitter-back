@@ -1,7 +1,6 @@
-const mongoose = require('mongoose'),
-  Schema = mongoose.Schema;
+const mongoose = require("mongoose");
 
-let groupSchema = new Schema({
+let groupSchema = mongoose.Schema({
   name: {
     type: String,
     default: 'Group',
@@ -21,5 +20,9 @@ let groupSchema = new Schema({
   }
 })
 
+memberSchema.statics.createGroups = function (data) {
+  return this.create(data);
+};
 
-mongoose.model('Group', groupSchema);
+module.exports = mongoose.model("group", groupSchema);
+
