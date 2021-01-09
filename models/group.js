@@ -15,8 +15,16 @@ let groupSchema = mongoose.Schema({
   }
 })
 
-memberSchema.statics.createGroups = function (data) {
+groupSchema.statics.createGroups = function (data) {
   return this.create(data);
+};
+
+groupSchema.statics.getUserDetail = function (condition, options) {
+  return this.findOne(condition, options || filterObj);
+};
+
+groupSchema.statics.updateMembersCount = function (id) {
+  return this.findOneAndUpdate({ _id: id }, { $inc: { membersCount: 1 } }).exec();
 };
 
 module.exports = mongoose.model("group", groupSchema);

@@ -55,7 +55,7 @@ const memberSchema = mongoose.Schema({
   ],
   notification: {
     type: Number,
-    default: 0,
+    default: 1,
   },
   updatedOn: {
     type: Date,

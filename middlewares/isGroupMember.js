@@ -14,6 +14,8 @@ const isGroupMember = async (req, res, next) => {
     if (!member) return sendResponse(res, 400, "Not a Group Member", {});
 
     req.memberId = member._id;
+    req.groupId = member.groupId;
+    req.groupName = member.groupName;
 
     next();
   } catch (err) {

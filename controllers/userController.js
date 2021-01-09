@@ -89,7 +89,7 @@ const getUsers = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in Login api (userController)", err);
+    console.log("ERROR in getUsers api (userController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -105,7 +105,7 @@ const checkNickNames = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in Login api (userController)", err);
+    console.log("ERROR in checkNickNames api (userController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };

@@ -14,27 +14,48 @@ const createGroup = async (req, res) => {
         membersCount: req.body.members.length,
       });
 
-      const members = req.body.members.map(item => {
-        return { groupName: group.name, groupId: group.id, userId: item.id, nickName: item.nickName };
+      const members = req.body.members.map((item) => {
+        return {
+          groupName: group.name,
+          groupId: group.id,
+          userId: item.id,
+          nickName: item.nickName,
+        };
       });
       await memberModel.createMembers(members);
 
-      //UPDATE new group created By req.user.nickName
-      //UPDATE you are added to "group.name" group { groupName: group.name, groupId: group.id, notification:1, updatedOn: new Date().toISOString() }
+      //UPDATE: you are added to "group.name" group { groupName: group.name, groupId: group.id, notification:1, updatedOn: new Date().toISOString() }
 
       sendResponse(res, 200, "Group created successfully", {
         groupName: group.name,
         groupId: group.id,
-        notification: 0,
+        notification: 1,
         updatedOn: new Date().toISOString(),
       });
     } else {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in getGroupsData api (memberController)", err);
+    console.log("ERROR in getGroupsData api (groupController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
 
-module.exports = { createGroup };
+const getGroupInfo = async (req, res) => {
+  try {
+    const group = await groupModel.getUserDetail(
+      { _id: req.groupId },
+      { __v: 0 }
+    );
+    const outstandings = await memberModel.getGroupMember(
+      { groupId: req.groupId, userId: req.user._id },
+      { giveTo: 1, takeFrom: 1 }
+    );
+    sendResponse(res, 200, "Group fetched successfully", { group, outstandings });
+  } catch (err) {
+    console.log("ERROR in getGroupInfo api (groupController)", err);
+    sendResponse(res, 400, "Something seems fishy in the request", err);
+  }
+};
+
+module.exports = { createGroup, getGroupInfo };
