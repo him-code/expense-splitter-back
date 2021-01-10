@@ -19,24 +19,7 @@ const memberSchema = mongoose.Schema({
     ref: "group",
     required: true,
   },
-  takeFrom: [
-    {
-      id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "member",
-        required: true,
-      },
-      name: {
-        type: String,
-        required: true,
-      },
-      amount: {
-        type: Number,
-        default: 0,
-      },
-    },
-  ],
-  giveTo: [
+  outstandings: [
     {
       id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -73,6 +56,14 @@ memberSchema.statics.getGroupMembers = function (condition, options) {
 
 memberSchema.statics.getGroupMember = function (condition, options) {
   return this.findOne(condition, options || {});
+};
+
+memberSchema.statics.updateMember = function (condition, options) {
+  return this.findOneAndUpdate(condition, options || {});
+};
+
+memberSchema.statics.updateMembers = function (condition, options) {
+  return this.updateMany(condition, options || {});
 };
 
 module.exports = mongoose.model("member", memberSchema);
