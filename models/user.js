@@ -51,4 +51,8 @@ userSchema.statics.getUserDetail = function (condition, options) {
   return this.findOne(condition, options || filterObj);
 };
 
+userSchema.statics.getUsers = function (condition, options) {
+  return this.find(condition, options || filterObj);
+};
+
 module.exports = mongoose.model("user", userSchema);

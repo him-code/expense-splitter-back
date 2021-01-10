@@ -47,11 +47,11 @@ const getGroupInfo = async (req, res) => {
       { _id: req.groupId },
       { __v: 0 }
     );
-    const outstandings = await memberModel.getGroupMember(
+    const outstandings = await memberModel.updateMember(
       { groupId: req.groupId, userId: req.user._id },
-      { giveTo: 1, takeFrom: 1 }
+      { notification: 0 }
     );
-    sendResponse(res, 200, "Group fetched successfully", { group, outstandings });
+    sendResponse(res, 200, "Group fetched successfully", { group, outstandings: outstandings.outstandings });
   } catch (err) {
     console.log("ERROR in getGroupInfo api (groupController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);

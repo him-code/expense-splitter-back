@@ -3,17 +3,17 @@ const mongoose = require("mongoose");
 let groupSchema = mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   membersCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
-  createdOn :{
-    type:Date,
-    default: Date.now
-  }
-})
+  createdOn: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 groupSchema.statics.createGroups = function (data) {
   return this.create(data);
@@ -24,8 +24,10 @@ groupSchema.statics.getUserDetail = function (condition, options) {
 };
 
 groupSchema.statics.updateMembersCount = function (id) {
-  return this.findOneAndUpdate({ _id: id }, { $inc: { membersCount: 1 } }).exec();
+  return this.findOneAndUpdate(
+    { _id: id },
+    { $inc: { membersCount: 1 } }
+  ).exec();
 };
 
 module.exports = mongoose.model("group", groupSchema);
-

@@ -19,9 +19,9 @@ const getGroupsData = async (req, res) => {
 const searchGroupMembers = async (req, res) => {
   try {
     const requiredKeys = ["nickName"];
-    if (validateKeys(req.body, requiredKeys)) {
+    if (validateKeys(req.params, requiredKeys)) {
       const users = await memberModel.getGroupMembers(
-        { nickName: `/^${req.body.nickName}/`, _id: { $ne: req.memberId } },
+        { nickName: { $regex: '^' + req.params.nickName + '.*' }, _id: { $ne: req.memberId } },
         { nickName: 1 }
       );
 
@@ -38,18 +38,15 @@ const searchGroupMembers = async (req, res) => {
 
 const getGroupMembers = async (req, res) => {
   try {
-    const requiredKeys = ["groupId"];
-    if (validateKeys(req.body, requiredKeys)) {
-      const users = await memberModel.getGroupMembers(
-        { groupId: req.body.groupId, _id: { $ne: req.memberId } },
-        { nickName: 1 }
-      );
 
-      if (users) sendResponse(res, 200, "Group Members fetched successfully", users);
-      else sendResponse(res, 200, "No such user present", {});
-    } else {
-      sendResponse(res, 400, "Missing required fields in the request", {});
-    }
+    const users = await memberModel.getGroupMembers(
+      { groupId: req.groupId, _id: { $ne: req.memberId } },
+      { nickName: 1 }
+    );
+
+    if (users)
+      sendResponse(res, 200, "Group Members fetched successfully", users);
+    else sendResponse(res, 200, "No such user present", {});
   } catch (err) {
     console.log("ERROR in getGroupMembers api (memberController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
@@ -58,20 +55,19 @@ const getGroupMembers = async (req, res) => {
 
 const addIntoGroup = async (req, res) => {
   try {
-    const requiredKeys = ["userId","nickName"];
+    const requiredKeys = ["userId", "nickName"];
     if (validateKeys(req.body, requiredKeys)) {
-
       const member = await memberModel.createMembers({
         groupName: req.groupName,
         groupId: req.groupId,
-        userId: userId,
-        nickName: nickName,
+        userId: req.body.userId,
+        nickName: req.body.nickName,
       });
       await groupModel.updateMembersCount(member.groupId);
 
       //UPDATE: your are added to "member.groupName" group { groupName: member.groupName, groupId: member.groupId, notification:1, updatedOn: new Date().toISOString() }
 
-      sendResponse(res, 200, "Member is added to the group Successfully", member);
+      sendResponse(res, 200, "Member is added to the group Successfully", {});
     } else {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }

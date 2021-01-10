@@ -3,7 +3,7 @@ const memberModel = require("../models/member");
 
 const isGroupMember = async (req, res, next) => {
   try {
-    const { groupId } = req.body;
+    const { groupId } = req.params;
 
     if (!groupId) return sendResponse(res, 400, "Missing GroupId", {});
 

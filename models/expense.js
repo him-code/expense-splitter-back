@@ -54,7 +54,7 @@ let expenseSchema = new Schema({
   }
 })
 
-memberSchema.statics.createExpenses = function (data) {
+expenseSchema.statics.createExpenses = function (data) {
   return this.create(data);
 };
 

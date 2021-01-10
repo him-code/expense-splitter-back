@@ -1,4 +1,4 @@
-const expenseModel = require("../models/exoense");
+const expenseModel = require("../models/expense");
 const memberModel = require("../models/member");
 const { validateKeys } = require("../utils/validators");
 const { sendResponse } = require("../utils/responseHandler");

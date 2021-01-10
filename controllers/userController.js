@@ -23,7 +23,7 @@ const signup = async (req, res) => {
   } catch (err) {
     console.log("ERROR in Signup api (userController)", err);
     if ((err.code = "11000"))
-      sendResponse(res, 200, "This email is already registered", {});
+      sendResponse(res, 200, "This email or nickName is already registered", {});
     else sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -59,7 +59,7 @@ const forgetPassword = async (req, res) => {
       if (req.body.mobileNumber) creds.mobileNumber = req.body.mobileNumber;
       else creds.email = req.body.email;
 
-      const user = await userModel.getDetailsByCreds(creds);
+      const user = await userModel.getUserDetail(creds);
 
       if (user && user.email) {
         // sendChangePassowrdMail(user.email);
@@ -77,10 +77,10 @@ const forgetPassword = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const requiredKeys = ["email"];
-    if (validateKeys(req.body, requiredKeys)) {
-      const users = await userModel.getUserDetail(
-        {email: `/^${req.body.email}/`, _id: { $ne: req.user._id }},
-        { firstName: 1, lastName: 1, email: 1 }
+    if (validateKeys(req.params, requiredKeys)) {
+      const users = await userModel.getUsers(
+        {email: { $regex: '^' + req.params.email + '.*' }, _id: { $ne: req.user._id }},
+        { firstName: 1, lastName: 1, email: 1, nickName: 1 }
       );
 
       if (users) sendResponse(res, 200, "List of users", users);
@@ -97,10 +97,12 @@ const getUsers = async (req, res) => {
 
 const checkNickNames = async (req, res) => {
   try {
-    if (req.body.nickName) {
-      const user = await userModel.getUserDetail({ nickName: `/^${req.body.nickName}/` });
+    if (req.params.nickName) {
+      const user = await userModel.getUserDetail({ nickName: req.params.nickName });
       if(!user)
         sendResponse(res, 200, "nickName available", {});
+      else
+        sendResponse(res, 200, "nickName unavailable", {});
     } else {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }

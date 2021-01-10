@@ -58,12 +58,12 @@ memberSchema.statics.getGroupMember = function (condition, options) {
   return this.findOne(condition, options || {});
 };
 
-memberSchema.statics.updateMember = function (condition, options) {
-  return this.findOneAndUpdate(condition, options || {});
+memberSchema.statics.updateMember = function (condition, update, options) {
+  return this.findOneAndUpdate(condition, update, options || {});
 };
 
 memberSchema.statics.updateMembers = function (condition, options) {
-  return this.updateMany(condition, options || {});
+  return this.updateMany(condition, update, options || {});
 };
 
 module.exports = mongoose.model("member", memberSchema);
