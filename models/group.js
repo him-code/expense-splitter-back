@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-let groupSchema = mongoose.Schema({
+const groupSchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
