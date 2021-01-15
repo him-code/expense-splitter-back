@@ -57,4 +57,16 @@ expenseSchema.statics.createExpenses = function (data) {
   return this.create(data);
 };
 
+expenseSchema.statics.getExpense = function (condition, options) {
+  return this.findOne(condition, options || {});
+};
+
+expenseSchema.statics.updateExpense = function (condition, update, options) {
+  return this.findOneAndUpdate(condition, update, options || {});
+};
+
+expenseSchema.statics.deleteExpenses = function (condition, options) {
+  return this.deleteMany(condition, options || {});
+};
+
 module.exports = mongoose.model("expense", expenseSchema);

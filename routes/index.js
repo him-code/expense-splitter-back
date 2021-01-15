@@ -6,6 +6,7 @@ const {
   forgetPassword,
   getUsers,
   checkNickNames,
+  changePassword,
 } = require("../controllers/userController");
 const {
   getGroupsData,
@@ -17,7 +18,13 @@ const {
   createGroup,
   getGroupInfo,
 } = require("../controllers/groupController");
-const { createExpense } = require("../controllers/expenseController");
+const { 
+  createExpense,
+  addIntoExpense,
+  removeFromExpense,
+  getExpenseInfo,
+  deleteExpense,
+ } = require("../controllers/expenseController");
 
 module.exports = function (app) {
   // user routes
@@ -25,6 +32,7 @@ module.exports = function (app) {
   app.post("/login", login);
   app.post("/forgetpassword", forgetPassword);
   app.get("/check-names/:nickName", checkNickNames);
+  app.post("/change-password", authenticate, changePassword)
   app.get("/search-users/:email", authenticate, getUsers);
   // member apis
   app.get("/get-my-groups", authenticate, getGroupsData);
@@ -36,10 +44,10 @@ module.exports = function (app) {
   app.get("/group/:groupId", authenticate, isGroupMember, getGroupInfo)
   // create expense api
   app.post("/create-expense/:groupId", authenticate, isGroupMember, createExpense);
-  // app.post("/add-in-expense", authenticate, isGroupMember, addIntoExpense)
-  // app.post("/remove-from-expense", authenticate, isGroupMember, removeFromExpense)
-  // app.get("/expense", authenticate, isGroupMember, getExpenseInfo)
-  // app.delete("/expense", authenticate, isGroupMember, getExpenseInfo)
+  app.post("/add-in-expense", authenticate, isGroupMember, addIntoExpense)
+  app.post("/remove-from-expense", authenticate, isGroupMember, removeFromExpense)
+  app.get("/expense", authenticate, isGroupMember, getExpenseInfo)
+  app.delete("/expense", authenticate, isGroupMember, deleteExpense)
   // updtes apis
   //inside group listing api
   //inside expense updates api
