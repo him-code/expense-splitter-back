@@ -90,7 +90,7 @@ const forgetPassword = async (req, res) => {
   }
 };
 
-const changePassword = (req, res) => {
+const changePassword = async (req, res) => {
   try {
     const requiredKeys = ["password"];
     if (validateKeys(req.body, requiredKeys)) {
