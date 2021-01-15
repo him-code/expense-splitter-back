@@ -149,30 +149,11 @@ const removeFromExpense = async (req, res) => {
   try {
     const requiredKeys = ["expenseId", "memberId"];
     if (validateKeys(req.body, requiredKeys)) {
-      // const expense = await expenseModel.updateExpense(
-      //   { _id: req.body.expenseId, 'payers.memberId': req.body.memberId },
-      //   { $push: { payers: { memberId: member._id } }  }
-      // );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      const expense = await expenseModel.updateExpense(
+        { _id: req.body.expenseId, 'payers.memberId': req.body.memberId },
+        { $pull: { payers: { memberId: req.body.memberId } } }
+      );
+      
       if (!expense) sendResponse(res, 400, "Invalid expenseId or memberId", {});
 
       const oldAmount = expense.totalAmount / (expense.members.length + 1) ;
