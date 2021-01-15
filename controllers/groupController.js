@@ -1,5 +1,6 @@
 const groupModel = require("../models/group");
 const memberModel = require("../models/member");
+const outstandingModel = require("../models/outstanding");
 const { validateKeys } = require("../utils/validators");
 const { sendResponse } = require("../utils/responseHandler");
 
@@ -47,11 +48,25 @@ const getGroupInfo = async (req, res) => {
       { _id: req.groupId },
       { __v: 0 }
     );
-    const outstandings = await memberModel.updateMember(
+
+    await memberModel.updateMember(
       { groupId: req.groupId, userId: req.user._id },
       { notification: 0 }
     );
-    sendResponse(res, 200, "Group fetched successfully", { group, outstandings: outstandings.outstandings });
+
+    const toPay = await outstandingModel.getOutstandings({
+      groupId: req.groupId,
+      "payer.id": req.user._id,
+      amount: { $ne: 0 },
+    });
+
+    const toReceive = await outstandingModel.getOutstandings({
+      groupId: req.groupId,
+      "payee.id": req.user._id,
+      amount: { $ne: 0 },
+    });
+
+    sendResponse(res, 200, "Group fetched successfully", { group, toPay, toReceive });
   } catch (err) {
     console.log("ERROR in getGroupInfo api (groupController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);

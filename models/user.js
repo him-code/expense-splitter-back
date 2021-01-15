@@ -55,4 +55,8 @@ userSchema.statics.getUsers = function (condition, options) {
   return this.find(condition, options || filterObj);
 };
 
+userSchema.statics.updateUser = function (condition, update, options) {
+  return this.findOneAndUpdate(condition, update, options || filterObj);
+};
+
 module.exports = mongoose.model("user", userSchema);

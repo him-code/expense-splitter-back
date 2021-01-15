@@ -62,14 +62,48 @@ const forgetPassword = async (req, res) => {
       const user = await userModel.getUserDetail(creds);
 
       if (user && user.email) {
-        // sendChangePassowrdMail(user.email);
-        sendResponse(res, 200, "change password link is sent to the registerd Email Id", {});
+
+        const recepient = user.email;
+        const subject = "Forgot Password?";
+        const text = "Please click on the link to change password";
+        const body = `Hello ${user.name},<br>Please Click on the link
+         to change your password.<br><a href="${frontendBaseURl}/resetPassword
+         /${user._id}">Click Here</a><br><br>If you don’t use this link within 
+         1 hour , it will expire. To get a new password reset link, 
+         visit this <a href="${frontendBaseURl}/resetPassword">link</a><br>
+        Thank You,<br>
+        Team Expense Splitter`;
+        
+        const send = await sendEmailPromise(recepient, subject, text, body);
+
+        if (send["status"])
+          console.log(`Credentials email sent to ${status.envelope.to[0]}`);
+
+        sendResponse(res, 200, "This email or nickName is already registered", {});
       } else sendResponse(res, 400, "Login credentials are incorrect", {});
     } else {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
     console.log("ERROR in ForgotPassword api (userController)", err);
+    sendResponse(res, 400, "Something seems fishy in the request", err);
+  }
+};
+
+const changePassword = (req, res) => {
+  try {
+    const requiredKeys = ["password"];
+    if (validateKeys(req.body, requiredKeys)) {
+      const user = await userModel.updateUser({ _id: req.user._id },
+        { password: req.body.password }
+      );
+    
+      sendResponse(res, 200, "Password changed Successfully", {});
+    } else {
+      sendResponse(res, 400, "Missing required fields in the request", {});
+    }
+  } catch (err) {
+    console.log("ERROR in getUsers api (userController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -94,7 +128,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-
 const checkNickNames = async (req, res) => {
   try {
     if (req.params.nickName) {
@@ -112,4 +145,4 @@ const checkNickNames = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, forgetPassword, getUsers, checkNickNames};
+module.exports = { signup, login, forgetPassword, changePassword, getUsers, checkNickNames };

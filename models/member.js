@@ -62,7 +62,7 @@ memberSchema.statics.updateMember = function (condition, update, options) {
   return this.findOneAndUpdate(condition, update, options || {});
 };
 
-memberSchema.statics.updateMembers = function (condition, options) {
+memberSchema.statics.updateMembers = function (condition, update, options) {
   return this.updateMany(condition, update, options || {});
 };
 

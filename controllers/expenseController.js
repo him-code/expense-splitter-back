@@ -1,12 +1,18 @@
 const expenseModel = require("../models/expense");
-const memberModel = require("../models/member");
+const outstandingModel = require("../models/outstanding");
 const { validateKeys } = require("../utils/validators");
 const { sendResponse } = require("../utils/responseHandler");
 
 const createExpense = async (req, res) => {
   try {
     let payee;
-    const requiredKeys = ["name", "groupId", "totalAmount", "members", "paidBy"];
+    const requiredKeys = [
+      "name",
+      "groupId",
+      "totalAmount",
+      "members",
+      "paidBy",
+    ];
     if (validateKeys(req.body, requiredKeys) && req.body.members.length) {
       const { name, groupId, totalAmount, members, paidBy } = req.body;
       if (req.memberId == paidBy) {
@@ -26,42 +32,24 @@ const createExpense = async (req, res) => {
         payee,
       });
 
-      await memberModel.updateMembers(
-        {
-          _id: { $in: members.map((i) => i.memberId) },
-          groupId: groupId,
-          "outstandings.id": { $ne: payee.memberId },
-        },
-        {
-          outstandings: {
-            $push: {
-              id: payee.memberId,
-              name: payee.memberName,
-              amount: totalAmount / (members.length + 1),
-            },
-          },
-        }
+      const amount = totalAmount/ members.length + 1;
+
+      await outstandingModel.updateOutstandings(
+        { payee: { $in: members }, payer: payee, groupId },
+        { $dec: { amount } }
       );
 
-      await memberModel.updateMembers(
-        {
-          _id: { $in: members.map((i) => i.memberId) },
-          groupId: groupId,
-          "outstandings.id": payee.memberId,
-        },
-        { $inc: { "outstandings.$.amount": totalAmount / (members.length + 1)  } }
+      await outstandingModel.updateOutstandings(
+        { amount: { $lt: 0 } },
+        { $mul: { amount: -1 }, $rename: { 'payer': 'payee', 'payee': 'payer' } }
       );
 
-      // await memberModel.updateMember(
-      //   {
-      //     _id: payee.memberId,
-      //     groupId: groupId,
-      //     "outstandings.id": payee.memberId,
-      //   },
-      //   { $inc: { "outstandings.$.amount": totalAmount / (members.length + 1)  } }
-      // );
+      await outstandingModel.deleteOutstanding({ amount: 0 },);
 
-      //
+      await outstandingModel.updateOutstandings(
+        { payee, payer: { $in: members }, groupId },
+        { $inc: { amount } }, { upsert: true }
+      );      
 
       //UPDATE new expense created By req.user.nickName
       //UPDATE you are added to "name" expense { name, totalAmount, membersCount: members.length + 1, members, payee, createdOn: new Date().toISOString() }
