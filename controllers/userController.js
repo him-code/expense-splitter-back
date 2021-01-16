@@ -16,7 +16,7 @@ const signup = async (req, res) => {
       const user = await userModel.createUsers(req.body);
       const header = { xauth: user._id };
 
-      sendResponse(res, 200, "User created successfully", user, header);
+      sendResponse(res, 200, "User created successfully", {}, header);
     } else {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
@@ -38,8 +38,9 @@ const login = async (req, res) => {
       else creds.mobileNumber = req.body.mobileNumber;
 
       const user = await userModel.getUserDetail(creds);
+      const header = { xauth: user._id };
 
-      if (user) sendResponse(res, 200, "Login successful", user);
+      if (user) sendResponse(res, 200, "Login successful", {}, header);
       else sendResponse(res, 400, "Login credentials are incorrect", {});
     } else {
       sendResponse(res, 400, "Missing required fields in the request", {});

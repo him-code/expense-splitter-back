@@ -51,15 +51,15 @@ outstandingSchema.statics.getOutstanding = function (condition, options) {
 };
 
 outstandingSchema.statics.updateOutstanding = function (condition, update, options) {
-  return this.findOneAndUpdate(condition, update, options || {});
+  return this.findOneAndUpdate(condition, update, options || {}).exec();
 };
 
 outstandingSchema.statics.updateOutstandings = function (condition, update, options) {
-  return this.updateMany(condition, update, options || {});
+  return this.updateMany(condition, update, options || {}).exec();
 };
 
 outstandingSchema.statics.deleteOutstanding = function (condition, options) {
   return this.deleteMany(condition, options || {});
 };
 
-module.exports = mongoose.model("oustanding", outstandingSchema);
+module.exports = mongoose.model("outstanding", outstandingSchema);

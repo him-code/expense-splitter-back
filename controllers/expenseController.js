@@ -13,9 +13,9 @@ const createExpense = async (req, res) => {
       const groupId = req.groupId;
 
       if (req.memberId == paidBy) {
-        payee = { memberId: memberId, memberName: nickName };
+        payee = { memberId: paidBy, memberName: req.user.nickName };
       } else {
-        members.push({ memberId: memberId, memberName: nickName });
+        members.push({ memberId: paidBy, memberName: req.user.nickName });
         payee = members.filter((item) => item.memberId == paidBy)[0];
         members.splice(members.indexOf(payee), 1);
       }
@@ -24,7 +24,7 @@ const createExpense = async (req, res) => {
         name,
         groupId,
         totalAmount,
-        members,
+        payers: members,
         membersCount: members.length + 1,
         payee,
       });
@@ -33,20 +33,27 @@ const createExpense = async (req, res) => {
 
       await outstandingModel.updateOutstandings(
         { payee: { $in: members }, payer: payee, groupId },
-        { $dec: { amount } }
+        { $inc: { amount: amount * -1 } }
       );
 
       await outstandingModel.updateOutstandings(
         { amount: { $lt: 0 }, groupId },
-        { $mul: { amount: -1 }, $rename: { payer: "payee", payee: "payer" } }
+        {
+          $mul: { amount: -1 },
+          $rename: {
+            payer: "itermediate",
+            payee: "itermediate2",
+            itermediate: "payee",
+            itermediate2: "payer",
+          },
+        }
       );
 
       await outstandingModel.deleteOutstanding({ amount: 0 });
 
       await outstandingModel.updateOutstandings(
         { payee, payer: { $in: members }, groupId },
-        { $inc: { amount } },
-        { upsert: true }
+        { $inc: { amount } }
       );
 
       //UPDATE new expense created By req.user.nickName
@@ -84,22 +91,22 @@ const addIntoExpense = async (req, res) => {
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId", {});
 
-      const newAmount = expense.totalAmount / (expense.members.length + 2);
+      const newAmount = expense.totalAmount / (expense.membersCount + 1);
       const amountDifference =
-        expense.totalAmount / (expense.members.length + 1) - newAmount;
+        expense.totalAmount / expense.membersCount - newAmount;
 
       await outstandingModel.updateOutstandings(
         {
           payee: expense.payee,
-          payer: { $in: expense.members },
+          payer: { $in: expense.payers },
           groupId: req.groupId,
         },
-        { $dec: { amountDifference } }
+        { $inc: { amountDifference: amountDifference * -1 } }
       );
 
       await outstandingModel.updateOutstandings(
         {
-          payee: { $in: expense.members },
+          payee: { $in: expense.payers },
           payer: expense.payee,
           groupId: req.groupId,
         },
@@ -121,12 +128,21 @@ const addIntoExpense = async (req, res) => {
           payer: expense.payee,
           groupId: req.groupId,
         },
-        { $dec: { newAmount } }, { upsert: true }
+        { $inc: { newAmount: newAmount * -1 } },
+        { upsert: true }
       );
 
       await outstandingModel.updateOutstandings(
         { amount: { $lt: 0 }, groupId: req.groupId },
-        { $mul: { amount: -1 }, $rename: { payer: "payee", payee: "payer" } }
+        {
+          $mul: { amount: -1 },
+          $rename: {
+            payer: "itermediate",
+            payee: "itermediate2",
+            itermediate: "payee",
+            itermediate2: "payer",
+          },
+        }
       );
 
       await outstandingModel.deleteOutstanding({ amount: 0 });
@@ -144,26 +160,25 @@ const addIntoExpense = async (req, res) => {
   }
 };
 
-
 const removeFromExpense = async (req, res) => {
   try {
     const requiredKeys = ["expenseId", "memberId"];
     if (validateKeys(req.body, requiredKeys)) {
       const expense = await expenseModel.updateExpense(
-        { _id: req.body.expenseId, 'payers.memberId': req.body.memberId },
+        { _id: req.body.expenseId, "payers.memberId": req.body.memberId },
         { $pull: { payers: { memberId: req.body.memberId } } }
       );
-      
+
       if (!expense) sendResponse(res, 400, "Invalid expenseId or memberId", {});
 
-      const oldAmount = expense.totalAmount / (expense.members.length + 1) ;
-      const amountDifference = expense.totalAmount / (expense.members.length) - oldAmount;
-        
+      const oldAmount = expense.totalAmount / expense.membersCount;
+      const amountDifference =
+        expense.totalAmount / (expense.membersCount - 1) - oldAmount;
 
       await outstandingModel.updateOutstandings(
         {
           payee: expense.payee,
-          payer: { $in: expense.members },
+          payer: { $in: expense.payers },
           groupId: req.groupId,
         },
         { $inc: { amountDifference } }
@@ -171,25 +186,25 @@ const removeFromExpense = async (req, res) => {
 
       await outstandingModel.updateOutstandings(
         {
-          payee: { $in: expense.members },
+          payee: { $in: expense.payers },
           payer: expense.payee,
           groupId: req.groupId,
         },
-        { $dec: { amountDifference } }
+        { $inc: { amountDifference: amountDifference * -1 } }
       );
 
       await outstandingModel.updateOutstandings(
         {
           payee: expense.payee,
-          'payer.memberId': memberId,
+          "payer.memberId": memberId,
           groupId: req.groupId,
         },
-        { $dec: { oldAmount } }
+        { $inc: { oldAmount: oldAmount * -1 } }
       );
 
       await outstandingModel.updateOutstandings(
         {
-          'payee.memberId': memberId,
+          "payee.memberId": memberId,
           payer: expense.payee,
           groupId: req.groupId,
         },
@@ -198,7 +213,15 @@ const removeFromExpense = async (req, res) => {
 
       await outstandingModel.updateOutstandings(
         { amount: { $lt: 0 }, groupId: req.groupId },
-        { $mul: { amount: -1 }, $rename: { payer: "payee", payee: "payer" } }
+        {
+          $mul: { amount: -1 },
+          $rename: {
+            payer: "itermediate",
+            payee: "itermediate2",
+            itermediate: "payee",
+            itermediate2: "payer",
+          },
+        }
       );
 
       await outstandingModel.deleteOutstanding({ amount: 0 });
@@ -220,25 +243,26 @@ const deleteExpense = async (req, res) => {
   try {
     const requiredKeys = ["expenseId"];
     if (validateKeys(req.body, requiredKeys)) {
-
-      const expense = await expenseModel.deleteExpenses({ _id: req.body.expenseId});
+      const expense = await expenseModel.deleteExpenses({
+        _id: req.body.expenseId,
+      });
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId", {});
 
-      const amount = expense.totalAmount / (expense.members.length + 1) ;        
+      const amount = expense.totalAmount / expense.membersCount;
 
       await outstandingModel.updateOutstandings(
         {
           payee: expense.payee,
-          payer: { $in: expense.members },
+          payer: { $in: expense.payers },
           groupId: req.groupId,
         },
-        { $dec: { amount } }
+        { $inc: { amount: amount * -1 } }
       );
 
       await outstandingModel.updateOutstandings(
         {
-          payee: { $in: expense.members },
+          payee: { $in: expense.payers },
           payer: expense.payee,
           groupId: req.groupId,
         },
@@ -247,7 +271,15 @@ const deleteExpense = async (req, res) => {
 
       await outstandingModel.updateOutstandings(
         { amount: { $lt: 0 }, groupId: req.groupId },
-        { $mul: { amount: -1 }, $rename: { payer: "payee", payee: "payer" } }
+        {
+          $mul: { amount: -1 },
+          $rename: {
+            payer: "itermediate",
+            payee: "itermediate2",
+            itermediate: "payee",
+            itermediate2: "payer",
+          },
+        }
       );
 
       await outstandingModel.deleteOutstanding({ amount: 0 });
@@ -269,8 +301,9 @@ const getExpenseInfo = async (req, res) => {
   try {
     const requiredKeys = ["expenseId"];
     if (validateKeys(req.body, requiredKeys)) {
-
-      const expense = await expenseModel.getExpense({ _id: req.body.expenseId});
+      const expense = await expenseModel.getExpense({
+        _id: req.body.expenseId,
+      });
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId", {});
       else sendResponse(res, 200, "Expense fetched successfully", expense);
