@@ -31,29 +31,10 @@ const createExpense = async (req, res) => {
 
       const amount = totalAmount / (members.length + 1);
 
-      await outstandingModel.updateOutstandings(
-        { payee: { $in: members }, payer: payee, groupId },
-        { $inc: { amount: amount * -1 } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        { amount: { $lt: 0 }, groupId },
-        {
-          $mul: { amount: -1 },
-          $rename: {
-            payer: "itermediate",
-            payee: "itermediate2",
-            itermediate: "payee",
-            itermediate2: "payer",
-          },
-        }
-      );
-
-      await outstandingModel.deleteOutstanding({ amount: 0 });
-
-      await outstandingModel.updateOutstandings(
-        { payee, payer: { $in: members }, groupId },
-        { $inc: { amount } }
+      await outstandingModel.createOutstandings(
+        members.map((i) => {
+          return { payee, payer: i, amount, groupId, expenseId: expense._id };
+        })
       );
 
       //UPDATE new expense created By req.user.nickName
@@ -86,66 +67,31 @@ const addIntoExpense = async (req, res) => {
           $push: {
             payers: { memberId: member._id, memberName: member.nickName },
           },
+          $inc: { membersCount: 1 },
         }
       );
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId", {});
 
-      const newAmount = expense.totalAmount / (expense.membersCount + 1);
       const amountDifference =
-        expense.totalAmount / expense.membersCount - newAmount;
+        expense.totalAmount /
+        (expense.membersCount * (expense.membersCount + 1));
 
       await outstandingModel.updateOutstandings(
         {
-          payee: expense.payee,
-          payer: { $in: expense.payers },
+          expenseId: expense._id,
           groupId: req.groupId,
         },
-        { $inc: { amountDifference: amountDifference * -1 } }
+        { $inc: { amount: amountDifference * -1 } }
       );
 
-      await outstandingModel.updateOutstandings(
-        {
-          payee: { $in: expense.payers },
-          payer: expense.payee,
-          groupId: req.groupId,
-        },
-        { $inc: { amountDifference } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        {
-          payee: expense.payee,
-          payer: { memberId: member._id, memberName: member.nickName },
-          groupId: req.groupId,
-        },
-        { $inc: { newAmount } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        {
-          payee: { memberId: member._id, memberName: member.nickName },
-          payer: expense.payee,
-          groupId: req.groupId,
-        },
-        { $inc: { newAmount: newAmount * -1 } },
-        { upsert: true }
-      );
-
-      await outstandingModel.updateOutstandings(
-        { amount: { $lt: 0 }, groupId: req.groupId },
-        {
-          $mul: { amount: -1 },
-          $rename: {
-            payer: "itermediate",
-            payee: "itermediate2",
-            itermediate: "payee",
-            itermediate2: "payer",
-          },
-        }
-      );
-
-      await outstandingModel.deleteOutstanding({ amount: 0 });
+      await outstandingModel.createOutstandings({
+        payee: expense.payee,
+        payer: { memberId: member._id, memberName: member.nickName },
+        amount: expense.amount - amountDifference,
+        groupId: req.groupId,
+        expenseId: expense._id,
+      });
 
       //UPDATE new expense created By req.user.nickName
       //UPDATE you are added to "name" expense { name, totalAmount, membersCount: members.length + 1, members, payee, createdOn: new Date().toISOString() }
@@ -177,54 +123,16 @@ const removeFromExpense = async (req, res) => {
 
       await outstandingModel.updateOutstandings(
         {
-          payee: expense.payee,
-          payer: { $in: expense.payers },
+          expenseId: expense._id,
           groupId: req.groupId,
         },
-        { $inc: { amountDifference } }
+        { $inc: { amount: amountDifference } }
       );
 
-      await outstandingModel.updateOutstandings(
-        {
-          payee: { $in: expense.payers },
-          payer: expense.payee,
-          groupId: req.groupId,
-        },
-        { $inc: { amountDifference: amountDifference * -1 } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        {
-          payee: expense.payee,
-          "payer.memberId": memberId,
-          groupId: req.groupId,
-        },
-        { $inc: { oldAmount: oldAmount * -1 } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        {
-          "payee.memberId": memberId,
-          payer: expense.payee,
-          groupId: req.groupId,
-        },
-        { $inc: { oldAmount } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        { amount: { $lt: 0 }, groupId: req.groupId },
-        {
-          $mul: { amount: -1 },
-          $rename: {
-            payer: "itermediate",
-            payee: "itermediate2",
-            itermediate: "payee",
-            itermediate2: "payer",
-          },
-        }
-      );
-
-      await outstandingModel.deleteOutstanding({ amount: 0 });
+      await outstandingModel.deleteOutstandings({
+        expenseId: expense._id,
+        "payer.memberId": req.body.memberId,
+      });
 
       //UPDATE new expense created By req.user.nickName
       //UPDATE you are added to "name" expense { name, totalAmount, membersCount: members.length + 1, members, payee, createdOn: new Date().toISOString() }
@@ -242,47 +150,14 @@ const removeFromExpense = async (req, res) => {
 const deleteExpense = async (req, res) => {
   try {
     const requiredKeys = ["expenseId"];
-    if (validateKeys(req.body, requiredKeys)) {
+    if (validateKeys(req.params, requiredKeys)) {
       const expense = await expenseModel.deleteExpenses({
-        _id: req.body.expenseId,
+        _id: req.params.expenseId,
       });
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId", {});
 
-      const amount = expense.totalAmount / expense.membersCount;
-
-      await outstandingModel.updateOutstandings(
-        {
-          payee: expense.payee,
-          payer: { $in: expense.payers },
-          groupId: req.groupId,
-        },
-        { $inc: { amount: amount * -1 } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        {
-          payee: { $in: expense.payers },
-          payer: expense.payee,
-          groupId: req.groupId,
-        },
-        { $inc: { amount } }
-      );
-
-      await outstandingModel.updateOutstandings(
-        { amount: { $lt: 0 }, groupId: req.groupId },
-        {
-          $mul: { amount: -1 },
-          $rename: {
-            payer: "itermediate",
-            payee: "itermediate2",
-            itermediate: "payee",
-            itermediate2: "payer",
-          },
-        }
-      );
-
-      await outstandingModel.deleteOutstanding({ amount: 0 });
+      await outstandingModel.deleteOutstandings({ expenseId: req.params.expenseId });
 
       //UPDATE new expense created By req.user.nickName
       //UPDATE you are added to "name" expense { name, totalAmount, membersCount: members.length + 1, members, payee, createdOn: new Date().toISOString() }
@@ -300,9 +175,9 @@ const deleteExpense = async (req, res) => {
 const getExpenseInfo = async (req, res) => {
   try {
     const requiredKeys = ["expenseId"];
-    if (validateKeys(req.body, requiredKeys)) {
+    if (validateKeys(req.params, requiredKeys)) {
       const expense = await expenseModel.getExpense({
-        _id: req.body.expenseId,
+        _id: req.params.expenseId,
       });
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId", {});

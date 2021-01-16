@@ -44,10 +44,10 @@ module.exports = function (app) {
   app.get("/group/:groupId", authenticate, isGroupMember, getGroupInfo)
   // create expense api
   app.post("/create-expense/:groupId", authenticate, isGroupMember, createExpense);
-  app.post("/add-in-expense", authenticate, isGroupMember, addIntoExpense)
-  app.post("/remove-from-expense", authenticate, isGroupMember, removeFromExpense)
-  app.get("/expense", authenticate, isGroupMember, getExpenseInfo)
-  app.delete("/expense", authenticate, isGroupMember, deleteExpense)
+  app.post("/add-in-expense/:groupId/:expenseId", authenticate, isGroupMember, addIntoExpense)
+  app.post("/remove-from-expense/:groupId/:expenseId", authenticate, isGroupMember, removeFromExpense)
+  app.get("/expense/:groupId/:expenseId", authenticate, isGroupMember, getExpenseInfo)
+  app.delete("/expense/:groupId/:expenseId", authenticate, isGroupMember, deleteExpense)
   // updtes apis
   //inside group listing api
   //inside expense updates api

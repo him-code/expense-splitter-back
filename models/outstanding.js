@@ -6,6 +6,11 @@ const outstandingSchema = mongoose.Schema({
     ref: "group",
     required: true,
   },
+  expenseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "expense",
+    required: true,
+  },
   payee: {
     memberId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -42,24 +47,41 @@ outstandingSchema.statics.createOutstandings = function (data) {
   return this.create(data);
 };
 
-outstandingSchema.statics.getOutstandings = function (condition, options) {
-  return this.find(condition, options || {});
-};
-
-outstandingSchema.statics.getOutstanding = function (condition, options) {
-  return this.findOne(condition, options || {});
-};
-
-outstandingSchema.statics.updateOutstanding = function (condition, update, options) {
-  return this.findOneAndUpdate(condition, update, options || {}).exec();
-};
-
-outstandingSchema.statics.updateOutstandings = function (condition, update, options) {
+outstandingSchema.statics.updateOutstandings = function (
+  condition,
+  update,
+  options
+) {
   return this.updateMany(condition, update, options || {}).exec();
 };
 
-outstandingSchema.statics.deleteOutstanding = function (condition, options) {
+outstandingSchema.statics.getTotalToPay = function (payerId, groupId) {
+  return this.aggregate([
+    { $match: { "payer.memberId": payerId, groupId } },
+    {
+      $group: {
+        _id: "$payee",
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]).exec();
+};
+
+outstandingSchema.statics.getTotalToReceive = function (payeeId, groupId) {
+  return this.aggregate([
+    { $match: { "payee.memberId": payeeId, groupId } },
+    {
+      $group: {
+        _id: "$payer",
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]).exec();
+};
+
+outstandingSchema.statics.deleteOutstandings = function (condition, options) {
   return this.deleteMany(condition, options || {});
 };
 
-module.exports = mongoose.model("outstanding", outstandingSchema);
+const outstandingModel = mongoose.model("outstanding", outstandingSchema);
+module.exports = outstandingModel;

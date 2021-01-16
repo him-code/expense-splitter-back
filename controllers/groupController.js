@@ -54,17 +54,9 @@ const getGroupInfo = async (req, res) => {
       { notification: 0 }
     );
 
-    const toPay = await outstandingModel.getOutstandings({
-      groupId: req.groupId,
-      "payer.id": req.user._id,
-      amount: { $ne: 0 },
-    });
+    const toPay = await outstandingModel.getTotalToPay(req.memberId, req.groupId);
 
-    const toReceive = await outstandingModel.getOutstandings({
-      groupId: req.groupId,
-      "payee.id": req.user._id,
-      amount: { $ne: 0 },
-    });
+    const toReceive = await outstandingModel.getTotalToReceive(req.memberId, req.groupId);
 
     sendResponse(res, 200, "Group fetched successfully", { group, toPay, toReceive });
   } catch (err) {
