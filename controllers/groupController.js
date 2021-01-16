@@ -8,7 +8,7 @@ const createGroup = async (req, res) => {
   try {
     const requiredKeys = ["name", "members"];
     if (validateKeys(req.body, requiredKeys) && req.body.members.length) {
-      req.body.members.push({ id: req.user._id, nickName: req.user.nickName });
+      req.body.members.push({ _id: req.user._id, nickName: req.user.nickName });
 
       const group = await groupModel.createGroups({
         name: req.body.name,
@@ -19,7 +19,7 @@ const createGroup = async (req, res) => {
         return {
           groupName: group.name,
           groupId: group.id,
-          userId: item.id,
+          userId: item._id,
           nickName: item.nickName,
         };
       });
