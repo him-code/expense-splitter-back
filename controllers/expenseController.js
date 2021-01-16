@@ -45,7 +45,7 @@ const createExpense = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in getGroupsData api (memberController)", err);
+    console.log("ERROR in createExpense api (expenseController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -62,7 +62,7 @@ const addIntoExpense = async (req, res) => {
       if (!member) sendResponse(res, 400, "Member is not present in group", {});
 
       const expense = await expenseModel.updateExpense(
-        { _id: req.body.expenseId },
+        { _id: req.body.expenseId, "payers.memberId": { $ne: member._id } },
         {
           $push: {
             payers: { memberId: member._id, memberName: member.nickName },
@@ -84,11 +84,13 @@ const addIntoExpense = async (req, res) => {
         },
         { $inc: { amount: amountDifference * -1 } }
       );
+      
+      const amount = expense.totalAmount/(expense.membersCount + 1);
 
       await outstandingModel.createOutstandings({
         payee: expense.payee,
         payer: { memberId: member._id, memberName: member.nickName },
-        amount: expense.amount - amountDifference,
+        amount,
         groupId: req.groupId,
         expenseId: expense._id,
       });
@@ -101,7 +103,7 @@ const addIntoExpense = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in getGroupsData api (memberController)", err);
+    console.log("ERROR in addIntoExpense api (expenseController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -112,7 +114,10 @@ const removeFromExpense = async (req, res) => {
     if (validateKeys(req.body, requiredKeys)) {
       const expense = await expenseModel.updateExpense(
         { _id: req.body.expenseId, "payers.memberId": req.body.memberId },
-        { $pull: { payers: { memberId: req.body.memberId } } }
+        {
+          $pull: { payers: { memberId: req.body.memberId } },
+          $inc: { membersCount: -1 },
+        }
       );
 
       if (!expense) sendResponse(res, 400, "Invalid expenseId or memberId", {});
@@ -142,7 +147,7 @@ const removeFromExpense = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in getGroupsData api (memberController)", err);
+    console.log("ERROR in removeFromExpense api (expenseController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -167,7 +172,7 @@ const deleteExpense = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in getGroupsData api (memberController)", err);
+    console.log("ERROR in deleteExpense api (expenseController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
@@ -186,7 +191,7 @@ const getExpenseInfo = async (req, res) => {
       sendResponse(res, 400, "Missing required fields in the request", {});
     }
   } catch (err) {
-    console.log("ERROR in getGroupsData api (memberController)", err);
+    console.log("ERROR in getExpenseInfo api (expenseController)", err);
     sendResponse(res, 400, "Something seems fishy in the request", err);
   }
 };
